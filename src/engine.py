@@ -67,7 +67,7 @@ class vLLMEngine:
                         if self.custom_chat_template and isinstance(self.custom_chat_template, str):
                             self.tokenizer.chat_template = self.custom_chat_template
                     
-                    def apply_chat_template(self, input):
+                    def apply_chat_template(self, input, template_kwargs = {}):
                         if isinstance(input, list):
                             if not self.has_chat_template:
                                 raise ValueError(
@@ -79,7 +79,7 @@ class vLLMEngine:
                             raise ValueError("Input must be a string or a list of messages")
                         
                         return self.tokenizer.apply_chat_template(
-                            input, tokenize=False, add_generation_prompt=True
+                            input, tokenize=False, add_generation_prompt=True, **template_kwargs
                         )
                 
                 return MinimalTokenizerWrapper(tokenizer)
@@ -94,6 +94,7 @@ class vLLMEngine:
         try:
             async for batch in self._generate_vllm(
                 llm_input=job_input.llm_input,
+                template_kwargs=job_input.chat_template_kwargs,
                 validated_sampling_params=job_input.sampling_params,
                 batch_size=job_input.max_batch_size,
                 stream=job_input.stream,
@@ -106,10 +107,10 @@ class vLLMEngine:
         except Exception as e:
             yield {"error": create_error_response(str(e)).model_dump()}
 
-    async def _generate_vllm(self, llm_input, validated_sampling_params, batch_size, stream, apply_chat_template, request_id, batch_size_growth_factor, min_batch_size: str) -> AsyncGenerator[dict, None]:
+    async def _generate_vllm(self, llm_input, template_kwargs, validated_sampling_params, batch_size, stream, apply_chat_template, request_id, batch_size_growth_factor, min_batch_size: str) -> AsyncGenerator[dict, None]:
         if apply_chat_template or isinstance(llm_input, list):
             tokenizer_wrapper = self._get_tokenizer_for_chat_template()
-            llm_input = tokenizer_wrapper.apply_chat_template(llm_input)
+            llm_input = tokenizer_wrapper.apply_chat_template(llm_input, template_kwargs)
         results_generator = self.llm.generate(llm_input, validated_sampling_params, request_id)
         n_responses, n_input_tokens, is_first_output = validated_sampling_params.n, 0, True
         last_output_texts, token_counters = ["" for _ in range(n_responses)], {"batch": 0, "total": 0}

@@ -48,6 +48,7 @@ class JobInput:
         self.stream = job.get("stream", False)
         self.max_batch_size = job.get("max_batch_size")
         self.apply_chat_template = job.get("apply_chat_template", False)
+        self.chat_template_kwargs = job.get("chat_template_kwargs", {})
         self.use_openai_format = job.get("use_openai_format", False)
         samp_param = job.get("sampling_params", {})
         if "max_tokens" not in samp_param:
@@ -61,6 +62,7 @@ class JobInput:
         self.min_batch_size = int(min_batch_size) if min_batch_size else None 
         self.openai_route = job.get("openai_route")
         self.openai_input = job.get("openai_input")
+
 class DummyState:
     def __init__(self):
         self.request_metadata = None
