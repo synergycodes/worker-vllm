@@ -1,9 +1,9 @@
 [project]
 name = "worker-vllm"
-version = "0.9.2-rc.1"
+version = "1.0.0-rc.2"
 description = "The RunPod worker template for serving our large language model endpoints. Powered by vLLM."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "vllm>=0.9.2",
+    "vllm>=0.10.1.1,<1.0.0",
 ]
